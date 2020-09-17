@@ -89,12 +89,6 @@ app.post('/api/persons', (request, response, next) => {
     })
   }
 
-  if (!body.name && !body.number) {
-    return response.status(400).json({ 
-      error: 'name and number missing' 
-    })
-  }
-
   /*
   if (body.name && persons.find(person => person.name.toLowerCase() === body.name.toLowerCase())) {
     return response.status(400).json({ 
