@@ -10,8 +10,8 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
 
-morgan.token('post', function (res) { 
-  return JSON.stringify( res.body ) 
+morgan.token('post', function (res) {
+  return JSON.stringify(res.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post'))
 
@@ -46,7 +46,7 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/info', (req, res) => {
+app.get('/info', () => {
   Person.find({}).then(persons => {
     `<div>
       <p> Phonebook has info for ${persons.length} people<p>
@@ -55,7 +55,7 @@ app.get('/info', (req, res) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -67,7 +67,7 @@ app.get('/api/persons/:id', (request, response) => {
     .catch(error => next(error))
 })
 
-/* 
+/*
 const generateRandomId = () => {
   const randomId = Math.floor(Math.random() * Math.floor(100000));
   return randomId
@@ -78,21 +78,21 @@ app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name) {
-    return response.status(400).json({ 
-      error: 'name missing' 
+    return response.status(400).json({
+      error: 'name missing'
     })
   }
 
   if (!body.number) {
-    return response.status(400).json({ 
-      error: 'number missing' 
+    return response.status(400).json({
+      error: 'number missing'
     })
   }
 
   /*
   if (body.name && persons.find(person => person.name.toLowerCase() === body.name.toLowerCase())) {
-    return response.status(400).json({ 
-      error: 'name must be unique' 
+    return response.status(400).json({
+      error: 'name must be unique'
     })
   }
   */
@@ -106,7 +106,7 @@ app.post('/api/persons', (request, response, next) => {
   person.save().then(savedPerson => {
     response.json(savedPerson.toJSON())
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 
   // persons = persons.concat(person)
 
@@ -130,7 +130,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -143,21 +143,21 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     if (error.errors.name !== undefined) {
       if (error.errors.name.kind === 'unique') {
         return response.status(400).json({ error: 'name must be unique' })
-      } 
+      }
       if (error.errors.name.kind === 'minlength') {
         return response.status(400).json({ error: 'name must have at least 3 characters' })
       }
-    } 
+    }
     if (error.errors.number !== undefined) {
       if (error.errors.number.kind === 'minlength') {
         return response.status(400).json({ error: 'number must have at least 8 characters' })
-      } 
+      }
     }
     return response.status(400).json({ error: error.message })
   }
@@ -166,7 +166,7 @@ const errorHandler = (error, request, response, next) => {
 }
 
 app.use(errorHandler)
-  
+
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
