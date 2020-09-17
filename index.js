@@ -74,7 +74,7 @@ const generateRandomId = () => {
 }
 */
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name) {
@@ -95,11 +95,13 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
+  /*
   if (body.name && persons.find(person => person.name.toLowerCase() === body.name.toLowerCase())) {
     return response.status(400).json({ 
       error: 'name must be unique' 
     })
   }
+  */
 
   const person = new Person({
     name: body.name,
@@ -147,8 +149,23 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  if(error.name === 'CastError' && error.kind === 'ObjectId') {
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    if (error.errors.name !== undefined) {
+      if (error.errors.name.kind === 'unique') {
+        return response.status(400).json({ error: 'name must be unique' })
+      } 
+      if (error.errors.name.kind === 'minlength') {
+        return response.status(400).json({ error: 'name must have at least 3 characters' })
+      }
+    } 
+    if (error.errors.number !== undefined) {
+      if (error.errors.number.kind === 'minlength') {
+        return response.status(400).json({ error: 'number must have at least 8 characters' })
+      } 
+    }
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
